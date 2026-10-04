@@ -7,8 +7,6 @@ Phần phân tích tối đa một trang, không tính output ở phần 5.
 
 **Repo:** K4-Track02-Day17-NguyenThuHang-2A202602463-DataPipelineEngineering
 
-**Commit bài nộp:** K4-Track02-Day17-NguyenThuHang-2A202602463-DataPipelineEngineering
-
 **AI đã dùng và phạm vi hỗ trợ (hoặc không dùng):** Gemini, ChatGPT  
 
 **Nguồn tham khảo khác (nếu có):**
@@ -52,17 +50,59 @@ checksum nào lệch) — không phải cách sửa.
 ## 5. Output (dán nguyên văn)
 
 ```text
-$ make verify
+$ .\.venv\Scripts\python.exe -m scripts.verify
+=== verify.py — Day 17 pipeline contracts ===
+  [OK ] Bronze  every daily batch landed as Parquet (7 days x 3 sources)
+  [OK ] Bronze  re-landing a batch is a no-op (append-only, no duplicate file)
+  [OK ] Bronze  Bronze keeps the raw truth: Kafka tombstone + redelivered events are still there
+  [OK ] Silver  silver_tickets has exactly one row per ticket_id
+  [OK ] Silver  T-91 shows its latest state: high / closed / bug
+  [OK ] Silver  deleted ticket T-97 is a tombstone: is_deleted and no personal data left
+  [OK ] Silver  no email / phone number survives past Bronze
+  [OK ] Silver  silver_events has one row per event_id (Kafka redeliveries removed)
+  [OK ] Silver  2 malformed events quarantined with a reason; the run did not halt
+  [OK ] Gold    gold_feature_daily reconciles with a full recompute from Silver
+  [OK ] Gold    u05's offline events of 08-12 (arrived 08-15) are counted on 08-12
+  [OK ] Gold    LOOKBACK_DAYS covers measured P99 lateness (p99=3.00 days)
+  [OK ] Gold    training set uses point-in-time priority (T-91 created as 'low')
+  [OK ] Gold    late feedback creates a NEW snapshot version; the old one is untouched
+  [OK ] Gold    latest training snapshot excludes the deleted ticket T-97
+  [OK ] Gold    deletes propagate to the RAG index: no chunk of T-97
+  [OK ] Gold    gold_doc_chunks: one row per chunk, and a re-run embeds 0 new chunks
+  [OK ] Rerun   re-run 2026-08-12 three times -> Gold checksum identical to a fresh build
 
-$ make test
+RESULT: 18/18 checks — ALL PASS
 
-$ make rerun3
+$ .\.venv\Scripts\python.exe -m pytest
+..................................                                                                               [100%]
+34 passed in 2.21s
 
-$ make lateness
+$ .\.venv\Scripts\python.exe -m scripts.rerun_check
+# Lab 17 — re-run check for 2026-08-12
 
-$ make dbt
+run                     gold_feature_daily    gold_training_set     gold_doc_chunks       gold (combined)
+fresh build             8630e04a61d1          9370ca77af23          cb9ebd12fdcc          39e115c510ecdf526800eac227158a4f
+re-run #1 of 2026-08-12 8630e04a61d1          9370ca77af23          cb9ebd12fdcc          39e115c510ecdf526800eac227158a4f
+re-run #2 of 2026-08-12 8630e04a61d1          9370ca77af23          cb9ebd12fdcc          39e115c510ecdf526800eac227158a4f
+re-run #3 of 2026-08-12 8630e04a61d1          9370ca77af23          cb9ebd12fdcc          39e115c510ecdf526800eac227158a4f
 
-$ make parity
+RESULT: PASS — 3 re-runs, identical checksums
+
+$ .\.venv\Scripts\python.exe main.py --lateness
+event lateness over 43 Bronze records (calendar days): p50=0.00 p95=2.90 p99=3.00 max=3
+-> lookback must be >= ceil(p99) = 3 day(s); config.LOOKBACK_DAYS = 3
+
+$ Push-Location dbt_project; try { ..\.venv\Scripts\dbt.exe build --profiles-dir . --event-time-start 2026-08-10 --event-time-end 2026-08-17 } finally { Pop-Location }
+Finished running 3 incremental models, 13 data tests, 1 unit test, 2 view models in 0 hours 0 minutes and 1.52 seconds (1.52s).
+Completed successfully
+Done. PASS=19 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=19
+
+$ .\.venv\Scripts\python.exe -m scripts.parity
+=== parity: lite pipeline vs dbt ===
+  [OK ] silver_tickets       lite 3c15dfd43701  dbt 3c15dfd43701
+  [OK ] gold_feature_daily   lite 8630e04a61d1  dbt 8630e04a61d1
+RESULT: PARITY — both implementations agree
+
 ```
 
 Nếu dùng PowerShell, ghi lệnh tương đương và output thực tế theo [SUBMISSION.md](../docs/SUBMISSION.md).
