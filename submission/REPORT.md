@@ -21,13 +21,13 @@ checksum nào lệch) — không phải cách sửa.
 | | Lỗi Silver | Lỗi late data | Lỗi xoá (CDC) |
 |---|---|---|---|
 | **Triệu chứng** |Check fail: silver_tickets có 24 dòng cho 12 vé (bị lặp). T-91 có 3 trạng thái cũ/mới thay vì chỉ 1 trạng thái mới nhất (high/closed/bug). |Check fail: LOOKBACK_DAYS=0 < 3 (P99 đo được 3 ngày). Các sự kiện ngày 08-12 của u05 đến muộn vào ngày 08-15 chỉ đếm được (2, 1, 0) thay vì (5, 3, 1). |Check fail: T-97 không thành tombstone (is_deleted vẫn False, còn email/SĐT). T-97 vẫn lọt vào training set (1 row) và RAG chunks (2 chunks). |
-| **Nguyên nhân gốc** | | | |
-| **Cách sửa** (file, vài dòng) | | | |
-| **Khái niệm trên slide** | | | |
+| **Nguyên nhân gốc** |Hàm upsert_silver_tickets dùng INSERT INTO cho mỗi batch, khiến mỗi lần vé có cập nhật lại bị chèn thêm một dòng mới thay vì ghi đè theo khoá. | | |
+| **Cách sửa** (file, vài dòng) |Sửa file pipeline/silver.py: đổi INSERT INTO thành MERGE INTO theo khoá ticket_id, chỉ UPDATE khi source._lsn > target._lsn, nếu chưa có thì INSERT. | | |
+| **Khái niệm trên slide** |Silver có khoá, MERGE / Upsert idempotent, CDC Log Sequence Number (_lsn). | | |
 
 ## 2. Các con số
 
-- P99 lateness đo từ Bronze: `3 ngày` ngày → `LOOKBACK_DAYS = 3`
+- P99 lateness đo từ Bronze: `3` ngày → `LOOKBACK_DAYS = 3`
 - `submission/checksums.txt`: PASS / FAIL — Gold checksum: `________________`
 - `make parity`: PARITY / MISMATCH
 
