@@ -3,10 +3,14 @@
 Phần phân tích tối đa một trang, không tính output ở phần 5.
 Định dạng tham chiếu và phạm vi tính trang: [SUBMISSION.md](../docs/SUBMISSION.md).
 
-**Họ tên / MSSV:**
-**Repo:**
-**Commit bài nộp:**
-**AI đã dùng và phạm vi hỗ trợ (hoặc không dùng):**
+**Họ tên / MSSV:** Nguyễn Thu Hằng 
+
+**Repo:** K4-Track02-Day17-NguyenThuHang-2A202602463-DataPipelineEngineering
+
+**Commit bài nộp:** K4-Track02-Day17-NguyenThuHang-2A202602463-DataPipelineEngineering
+
+**AI đã dùng và phạm vi hỗ trợ (hoặc không dùng):** Gemini, ChatGPT  
+
 **Nguồn tham khảo khác (nếu có):**
 
 ## 1. Ba lỗi
@@ -16,14 +20,14 @@ checksum nào lệch) — không phải cách sửa.
 
 | | Lỗi Silver | Lỗi late data | Lỗi xoá (CDC) |
 |---|---|---|---|
-| **Triệu chứng** | | | |
+| **Triệu chứng** |Check fail: silver_tickets có 24 dòng cho 12 vé (bị lặp). T-91 có 3 trạng thái cũ/mới thay vì chỉ 1 trạng thái mới nhất (high/closed/bug). |Check fail: LOOKBACK_DAYS=0 < 3 (P99 đo được 3 ngày). Các sự kiện ngày 08-12 của u05 đến muộn vào ngày 08-15 chỉ đếm được (2, 1, 0) thay vì (5, 3, 1). |Check fail: T-97 không thành tombstone (is_deleted vẫn False, còn email/SĐT). T-97 vẫn lọt vào training set (1 row) và RAG chunks (2 chunks). |
 | **Nguyên nhân gốc** | | | |
 | **Cách sửa** (file, vài dòng) | | | |
 | **Khái niệm trên slide** | | | |
 
 ## 2. Các con số
 
-- P99 lateness đo từ Bronze: `____` ngày → `LOOKBACK_DAYS = ____`
+- P99 lateness đo từ Bronze: `3 ngày` ngày → `LOOKBACK_DAYS = 3`
 - `submission/checksums.txt`: PASS / FAIL — Gold checksum: `________________`
 - `make parity`: PARITY / MISMATCH
 
